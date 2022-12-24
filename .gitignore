@@ -1,5 +1,7 @@
 # result files
-result/*.pptx
+*.pptx
+!template.pptx
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

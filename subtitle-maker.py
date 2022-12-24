@@ -6,7 +6,7 @@ argument = sys.argv
 
 
 # read lyrics text file
-f = open('./target/' + argument[1] + '.txt', 'r', encoding='UTF-8')
+f = open('./txt/' + argument[1] + '.txt', 'r', encoding='UTF-8')
 lines = f.readlines()
 lines = list(map(lambda s: s.strip(), lines))  # 각줄의 양끝 개행문자 제거
 # lines = list(filter(lambda s: s not in ['', '\n', '\u200b\n' ',\u200b'], lines))  # remove empty line
@@ -45,4 +45,4 @@ for subtitle in lyrics:
 
 
 # save
-presentation.save('./result/' + song_title + '.pptx')
+presentation.save('./ppt/' + song_title + '.pptx')

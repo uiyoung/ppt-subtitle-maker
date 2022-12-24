@@ -8,12 +8,12 @@ txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
    - error occurs on python over 3.10
 2. install python-pptx library
    - `pip install python-pptx`
-3. `/target` 디렉토리에 `곡명.txt` 파일을 만들고 그 안에 만들고 싶은 자막의 가사를 작성한다.
+3. `/txt` 디렉토리에 `곡명.txt` 파일을 만들고 그 안에 만들고 싶은 자막의 가사를 작성한다.
    - 두줄 씩 엔터로 구분해서 작성
-   - e.g. `/target/sample.txt`
+   - e.g. `/txt/sample.txt`
 4. run `python subtitle-maker ["곡명"]
    - e.g. `python subtitle-maker sample`
-5. 생성된 `./result/곡명.pptx ` ppt 파일을 확인한다.
+5. 생성된 `./ppt/곡명.pptx ` ppt 파일을 확인한다.
 
 ## todo
 

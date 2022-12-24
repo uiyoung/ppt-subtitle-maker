@@ -21,3 +21,4 @@ txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 - try catch
 - GUI mode
 - 여러 곡 한번에 저장해서 콘티 만들기
+- merger

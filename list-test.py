@@ -1,5 +1,4 @@
-list = [1, 2, 3, 4, 5]
+t1 = (1, 2)
+t2 = (4,)
 
-list[0] = 3
-
-print(list)
+print(t1+t2)

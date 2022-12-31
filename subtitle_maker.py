@@ -1,7 +1,7 @@
 from pptx import Presentation
 
 
-def generate_ppt(songs):
+def generate_ppt(songs, path):
     # open template
     presentation = Presentation('template.pptx')
 
@@ -25,4 +25,4 @@ def generate_ppt(songs):
             title_placeholder.text = subtitle
 
     # save
-    presentation.save('./ppt/' + song_title + '.pptx')
+    presentation.save(path + '.pptx')

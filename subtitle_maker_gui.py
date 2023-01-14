@@ -422,13 +422,13 @@ def generate_ppt():
         messagebox.showwarning('generate PPT', '곡을 먼저 추가해주세요.')
         return
 
-    path = filedialog.asksaveasfilename(initialdir="./ppt", title="Select file",
-                                        filetypes=(("PPTX files", "*.pptx"), ("all files", "*.*")))
+    # path = filedialog.asksaveasfilename(initialdir="./ppt", title="Select file", filetypes=(("PPTX files", "*.pptx"), ("all files", "*.*")))
+    path = filedialog.asksaveasfilename(title="Select file", filetypes=(("PPTX files", "*.pptx"), ("all files", "*.*")))
+    path = path.replace('.pptx', '')
 
     if not path:
         return
 
-    print(path)
     subtitle_maker.generate_ppt(songs, path)
     os.startfile(path + '.pptx')
 

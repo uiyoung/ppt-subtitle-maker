@@ -2,23 +2,44 @@
 
 txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 
-## USAGE
+## Features
+
+- 가사 DB 등록, 검색, 수정, 삭제
+- 콘티를 만들어서 한개의 PPT 자막 파일 생성
+
+## Requirements
 
 1. install [python 3.9.12](https://www.python.org/downloads/release/python-3912/)
    - error occurs on python over 3.10
 2. install python-pptx library
    - `pip install python-pptx`
-3. `/txt` 디렉토리에 `곡명.txt` 파일을 만들고 그 안에 만들고 싶은 자막의 가사를 작성한다.
+
+## How to Use
+
+### GUI mode
+
+1. `start.bat` 파일을 실행하여 시작
+2. `추가` 버튼을 눌러서 나온 검색 윈도우 에서 추가할 곡을 검색한다.
+   - 검색결과가 있는 경우 : 목록에서 원하는 곡을 고르고 `선택` 버튼을 누른다.
+   - 검색결과가 없는 경우 : `DB등록` 버튼을 눌러 새로운 곡 정보를 등록한다.
+3. 원하는 곡을 모두 선택했으면 메인 윈도우의 `generate` 버튼을 눌러 PPT 파일을 생성한다.
+
+### CLI mode
+
+1. `/txt` 디렉토리에 `곡명.txt` 파일을 만들고 그 안에 만들고 싶은 자막의 가사를 작성한다.
    - 두줄 씩 엔터로 구분해서 작성
    - e.g. `/txt/sample.txt`
-4. run `python subtitle-maker ["곡명"]
-   - e.g. `python subtitle-maker sample`
-5. 생성된 `./ppt/곡명.pptx ` ppt 파일을 확인한다.
+2. run `python subtitle-maker ["곡명"]
+   - e.g. `python subtitle_maker_cli sample`
+3. 생성된 `./ppt/곡명.pptx ` ppt 파일을 확인한다.
 
 ## todo
 
-- manage lyrics with DB
-- try catch
-- GUI mode
-- 여러 곡 한번에 저장해서 콘티 만들기
-- merger
+- [x] manage lyrics with DB
+- [x] GUI mode
+- [x] merger
+- [x] 여러 곡 한번에 저장해서 콘티 만들기
+- [ ] try catch 처리
+- [ ] 종료시 추가된 곡 리스트 저장, 다시 실행시 불러오기
+- [ ] 선택된 곡 리스트 관리
+- [ ] cloud db

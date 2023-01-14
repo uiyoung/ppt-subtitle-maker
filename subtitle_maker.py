@@ -7,7 +7,7 @@ def generate_ppt(songs, path):
 
     for song in songs:
         song_title = song[1]
-        lyrics = song[2].split('\n\n')
+        lyrics = song[2].replace('\n \n', '\n\n').split('\n\n')
         lyrics = list(map(lambda s: s.strip(), lyrics))  # 각줄의 양끝 개행문자 제거
 
         title_layout = presentation.slide_layouts[0]

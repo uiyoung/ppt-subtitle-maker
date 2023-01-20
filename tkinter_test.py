@@ -1,101 +1,55 @@
 import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import messagebox
+from tkinter import filedialog
+from tkinter.scrolledtext import ScrolledText
+import sqlite3
+import os
+import subtitle_maker
 
 root = tk.Tk()
 root.title("PPT Subtitle Maker")
-root.geometry("640x500+100+100")
+root.geometry("640x600+100+100")
 
+frame1 = tk.Frame(root, relief="solid", bd=1, width=100)
+frame1.pack(side="left", fill="both")
 
-# songs = [
-#     (1, 'title1', 'lyrics1', None, None),
-#     (2, 'title_2', 'lyrics_2', None, None),
-# ]
-songs = [
-    'title_1',
-    'title_2',
-    'title_3',
-    'title_4',
-    'title_5',
-    'title_6',
-    'title_7',
-    'title_8',
-    'title_9',
-    'title_10',
-    'title_10',
-    'title_10',
-    'title_10',
-    'title_10',
-    'title_10',
-]
+frame2 = tk.Frame(root, relief="sunken", bd=1)
+frame2.pack(side="right", fill="both")
 
+# 추가된 곡 건수 label
+lb_container = tk.Label(frame1)
+lb_container.pack()
 
-def generate_ppt():
-    label['text'] = 'pressed button!'
+label_var = tk.StringVar(value='추가된 곡 : 0건')
+label = tk.Label(lb_container, textvariable=label_var)
+label.grid(row=0, column=0)
 
+clear_btn = tk.Button(lb_container, text="clear")
+clear_btn.grid(row=0, column=1, padx=4)
 
-def search():
-    window2 = tk.Tk()
-    text = tk.Text(window2, width=50, height=10)
-    text.pack()
-
-
-def add(event):
-    songs.append(entry.get())
-    print(songs)
-    list_var.set(songs)
-    # clear entry
-    entry.delete(0, tk.END)
-
-
-def delete():
-    selected = song_listbox.curselection()
-    print(selected)
-    for i in selected:
-        print(i)
-        songs.pop(i)
-
-    print(songs)
-    list_var.set(songs)
-    song_listbox.select_clear(0, tk.END)
-
-
-def select_item(event):
-    selected = song_listbox.curselection()
-    print(selected)
-
-
-frame = tk.Frame(root, relief="solid", bd=2)
-
-label = tk.Label(frame, text='list')
-label.configure(text="size : " + str(len(songs)))
-label.pack(side="top")
-
-list_var = tk.StringVar(value=songs)
-song_listbox = tk.Listbox(frame, selectmode='extended', listvariable=list_var, activestyle='none')
-song_listbox.pack(side="left")
-scrollbar = tk.Scrollbar(frame, command=song_listbox.yview)
+# 추가된 곡 리스트
+treeview_frame = tk.Frame(frame1)
+# treeview_frame.grid(row=1, column=0, columnspan=5, padx=4, pady=4)
+treeview_frame.pack()
+treeview = ttk.Treeview(treeview_frame, columns=["title"], displaycolumns=["title"])
+treeview.pack(side="left")
+scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=treeview.yview)
 scrollbar.pack(side="right", fill="y")
-song_listbox.configure(yscrollcommand=scrollbar.set)
-frame.pack()
-
-
-# entry
-entry = tk.Entry(root)
-entry.bind("<Return>", add)
-entry.pack()
-
-# preview
-preview_text = tk.Text(root, width=50, height=10)
-preview_text.pack()
+treeview.configure(yscrollcommand=scrollbar.set)
 
 
 # buttons
-add_btn = tk.Button(root, text='+', command=add)
-remove_btn = tk.Button(root, text='-', command=delete)
-generate_btn = tk.Button(root, text='generate', command=generate_ppt)
-add_btn.pack()
-remove_btn.pack()
-generate_btn.pack()
+lb_buttons = tk.Label(frame1)
+lb_buttons.pack()
+search_btn = tk.Button(lb_buttons, text='추가')
+search_btn.pack(side="left")
+# update_btn = tk.Button(frame1, text='수정', command=update_song_btn)
+# update_btn.grid(row=3, column=1)
+remove_btn = tk.Button(lb_buttons, text='삭제')
+remove_btn.pack(side="left")
+generate_btn = tk.Button(frame1, text='generate', width=20)
+# generate_btn.grid(row=4, column=1, columnspan=3, pady=8)
 
 
-if __name__ == '__main__':
-    root.mainloop()
+root.mainloop()

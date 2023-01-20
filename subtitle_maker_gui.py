@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
+import tkinter.font as font
 import sqlite3
 import os
 import subtitle_maker
@@ -140,7 +141,7 @@ def open_search_window():
     global search_window
     search_window = tk.Toplevel(root)
     search_window.title("Search Lyrics")
-    search_window.geometry("640x480+200+100")
+    search_window.geometry("640x420+400+100")
 
     search_frame1 = tk.Frame(search_window, relief="solid", bd=1)
     search_frame1.pack(side="left", fill="both", expand=True)
@@ -236,7 +237,7 @@ def open_register_window():
 
     global add_window
     add_window = tk.Toplevel()
-    add_window.geometry("300x580+200+200")
+    add_window.geometry("300x480+400+200")
 
     # type
     type_lbl = ttk.Label(add_window, text="type")
@@ -275,47 +276,46 @@ def update_song_list(idx, new_song):
     songs[idx] = new_song
 
 
-def delete_song_list():
+def delete_song_from_list():
     selected = treeview.focus()
     if not selected:
+        messagebox.showwarning('삭제', '삭제할 아이템을 먼저 선택해주세요')
         return
 
     songs.pop(int(selected))
     set_treeview_items(songs)
 
 
-def set_preview_readonly(flag):
+def set_readonly(flag):
     new_state = 'disabled' if flag else 'normal'
     title_input.configure(state=new_state)
     lyrics_text.configure(state=new_state)
     memo_input.configure(state=new_state)
     type_combobox.configure(state='disabled' if flag else 'readonly')
+    save_btn.configure(state=new_state)
+    cancel_btn.configure(state=new_state)
 
 
 def clear_preview_widgets():
-    set_preview_readonly(False)
-    # id_lbl.configure(text='')
     id_lbl_var.set('')
+    type_combobox.set('')
     title_input.delete(0, 'end')
     lyrics_text.delete("1.0", tk.END)
-    type_combobox.set('')
     memo_input.delete(0, 'end')
     info_lbl.configure(text='')
 
 
 def preview_song(e):
-    # clear
-    clear_preview_widgets()
-
     selected = treeview.focus()
     if not selected:
         return
 
+    set_readonly(False)
+    clear_preview_widgets()
+
     selected = int(selected)
     print(selected)
 
-    # set
-    set_preview_readonly(False)
     id = songs[selected][0]
     title = songs[selected][1]
     lyrics = songs[selected][2]
@@ -328,16 +328,16 @@ def preview_song(e):
     type_combobox.set(type)
     memo_input.insert(0, memo)
 
-    set_preview_readonly(True)
-
-    save_btn.configure(state='disabled')
-    cancel_btn.configure(state='disabled')
+    set_readonly(True)
 
 
 def clear_song_list():
-    songs.clear()
-    treeview.focus('')
-    set_treeview_items(songs)
+    if len(songs) <= 0:
+        return
+    if messagebox.askokcancel('clear', "추가된 곡목록을 초기화 하시겠습니까?"):
+        songs.clear()
+        treeview.focus('')
+        set_treeview_items(songs)
 
 
 def set_treeview_items(songs):
@@ -349,27 +349,13 @@ def set_treeview_items(songs):
     label_var.set('추가된 곡 : ' + str(len(songs)) + '건')
 
 
-# def new_song():
-#     clear_preview_widgets()
-
-#     # clear selecection
-#     treeview.selection_remove(*treeview.selection())
-#     treeview.focus('')
-
-#     save_btn.configure(state='normal')
-#     cancel_btn.configure(state='normal')
-
-
 def update_song_btn():
     selected = treeview.focus()
     if not selected:
         messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
         return
-    print(selected)
 
-    set_preview_readonly(False)
-    save_btn.configure(state='normal')
-    cancel_btn.configure(state='normal')
+    set_readonly(False)
 
 
 def save_song():
@@ -393,28 +379,18 @@ def save_song():
         return
 
     selected = treeview.focus()
-    if selected:  # 수정
-        if messagebox.askyesno('수정', '수정 내용을 반영 하시겠습니까?'):
-            song = (song_id, title, lyrics, type, memo)
-            update_song_list(int(selected), song)
-        if song_id:
-            if messagebox.askyesno('수정', 'DB에 수정된 내용을 반영하시겠습니까?'):
-                song = (title, lyrics, type, memo)
-                update_song_to_db(song, song_id)
-                pass
-
-    else:  # 추가
-        if messagebox.askyesno('저장', '현재 목록에 추가 하시겠습니까?'):
-            song = ('', title, lyrics, type, memo)
-            add_song_list(song)
-        if messagebox.askyesno('저장', 'DB에 저장하시겠습니까?'):
-            song = [title, lyrics, type, memo]
-            insert_song_to_db(song)
+    if messagebox.askyesno('수정', '수정 내용을 반영 하시겠습니까?'):
+        song = (song_id, title, lyrics, type, memo)
+        update_song_list(int(selected), song)
+    if song_id:
+        if messagebox.askyesno('수정', 'DB에 수정된 내용을 반영하시겠습니까?'):
+            song = (title, lyrics, type, memo)
+            update_song_to_db(song, song_id)
 
 
 def cancel():
-    clear_preview_widgets()
-    set_preview_readonly(True)
+    if messagebox.askyesno('cancel', '수정을 취소하시겠습니까?'):
+        preview_song(None)
 
 
 def generate_ppt():
@@ -438,22 +414,41 @@ selected_idx = ''   # treeview에서 선택된 인덱스('': 선택안됨)
 
 root = tk.Tk()
 root.title("PPT Subtitle Maker")
-root.geometry("640x600+100+100")
+root.geometry("640x460+100+100")
 
-frame1 = tk.Frame(root, relief="solid", bd=1)
-frame1.pack(side="left", fill="both", expand=True)
+# fonts
+basic_font = font.Font(family="맑은 고딕", size=9)
+bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
 
-frame2 = tk.Frame(root, relief="solid", bd=1)
-frame2.pack(side="right", fill="both", expand=True)
+frame1 = tk.Frame(root, relief="groove", bd=2)
+frame1.pack(side="left", fill="y", padx=4, anchor="n")
 
-treeview_frame = tk.Frame(frame1)
+frame2 = tk.Frame(root, relief="groove", bd=2)
+frame2.pack(side="left", fill="y", padx=4, anchor="n")
+
+lb_bottom = tk.Label(root, bg="#f00")
+lb_bottom.pack(side="bottom", fill="x")
+
+# frame title
+list_label = tk.Label(frame1, text='List', font=bold_font, bg="white", fg="red")
+list_label.pack(fill="x", anchor="center")
+
+# 추가된 곡 건수 label
+lb_status = tk.Label(frame1)
+lb_status.pack(fill="x")
 label_var = tk.StringVar(value='')
-label = tk.Label(frame1, textvariable=label_var)
-label.pack(side="top")
+lb_list_info = tk.Label(lb_status, font=bold_font, textvariable=label_var)
+lb_list_info.pack(side="left")
 
-treeview = ttk.Treeview(treeview_frame, columns=["title"], displaycolumns=["title"])
+# clear button
+clear_btn = tk.Button(lb_status, text="clear", command=clear_song_list)
+clear_btn.pack(side="right", padx=2)
+
+# 추가된 곡 리스트
+treeview_frame = tk.Frame(frame1)
+treeview_frame.pack(padx=4, pady=4)
+treeview = ttk.Treeview(treeview_frame, columns=["title"], displaycolumns=["title"], height=12)
 treeview.pack(side="left")
-
 scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=treeview.yview)
 scrollbar.pack(side="right", fill="y")
 treeview.configure(yscrollcommand=scrollbar.set)
@@ -464,63 +459,78 @@ treeview.heading("#0", text="no", anchor="center")
 treeview.column("#1", width=200)
 treeview.heading("#1", text="title", anchor="center")
 treeview.bind('<<TreeviewSelect>>', preview_song)
-treeview_frame.pack()
-
-set_treeview_items(songs)
 
 # buttons
-# add_btn = tk.Button(frame1, text='추가', command=new_song)
-# add_btn.pack()
-search_btn = tk.Button(frame1, text='추가', command=open_search_window)
-search_btn.pack()
-update_btn = tk.Button(frame1, text='수정', command=update_song_btn)
-update_btn.pack()
-remove_btn = tk.Button(frame1, text='삭제', command=delete_song_list)
-remove_btn.pack()
-clear_btn = tk.Button(frame1, text="clear", command=clear_song_list)
-clear_btn.pack()
-generate_btn = tk.Button(frame1, text='generate', command=generate_ppt)
-generate_btn.pack(side="bottom")
+lb_buttons = tk.Label(frame1)
+lb_buttons.pack(fill="x", anchor="e")
+update_btn = tk.Button(lb_buttons, text='수정', command=update_song_btn)
+update_btn.pack(side="right", padx=2)
+remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
+remove_btn.pack(side="right", padx=2)
+search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=open_search_window)
+search_btn.pack(side="right", padx=2)
 
-# preview
-preview_label = tk.Label(frame2, text='Preview')
-preview_label.pack()
+generate_btn = tk.Button(frame1, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=generate_ppt)
+generate_btn.pack(side="bottom", fill="x", padx=16, pady=8)
 
-type_lbl = tk.Label(frame2, text='구분')
-type_lbl.pack()
-type_combobox = ttk.Combobox(frame2, values=song_types, state='readonly')
-type_combobox.pack()
+# preview frame
 
-title_lbl = tk.Label(frame2, text='제목')
-title_lbl.pack()
-title_input = tk.Entry(frame2)
-title_input.pack()
+# frame title
+preview_label = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="red")
+preview_label.pack(fill="x", anchor="center")
 
-lyrics_lbl = tk.Label(frame2, text='가사')
-lyrics_lbl.pack()
-lyrics_text = ScrolledText(frame2, height=20)
-lyrics_text.pack()
+# type
+lb_type = tk.Label(frame2)
+lb_type.pack(fill="x")
+type_lbl = tk.Label(lb_type, text='구분', font=bold_font)
+type_lbl.pack(side="left")
+type_combobox = ttk.Combobox(lb_type, values=song_types, width=10, state='readonly')
+type_combobox.pack(side="left", padx=4)
 
-memo_lbl = tk.Label(frame2, text='메모')
-memo_lbl.pack()
-memo_input = tk.Entry(frame2)
-memo_input.pack()
-
+# id
+id_lbl = tk.Label(lb_type, text='ID', font=bold_font)
+id_lbl.pack(side="left")
 id_lbl_var = tk.StringVar()
-id_lbl = tk.Label(frame2, textvariable=id_lbl_var)
-id_lbl.pack()
+id_lbl = tk.Label(lb_type, textvariable=id_lbl_var)
+id_lbl.pack(side="left")
 
-set_preview_readonly(True)
+# title
+lb_title = tk.Label(frame2)
+lb_title.pack(fill="x")
+title_lbl = tk.Label(lb_title, text='제목', font=bold_font)
+title_lbl.pack(side="left")
+title_input = tk.Entry(lb_title, width=20)
+title_input.pack(side="left", padx=4, fill="x", expand=True)
 
-info_lbl = ttk.Label(frame2, text='', foreground='#d7565d')
-info_lbl.pack()
-save_btn = tk.Button(frame2, text='save', command=save_song, state='disabled')
-save_btn.pack()
-cancel_btn = tk.Button(frame2, text='cancel', command=cancel, state='disabled')
-cancel_btn.pack()
+# lyrics
+lb_lyrics = tk.Label(frame2)
+lb_lyrics.pack(fill="x")
+lyrics_lbl = tk.Label(lb_lyrics, text='가사', font=bold_font)
+lyrics_lbl.pack(side="left", anchor="n")
+lyrics_text = ScrolledText(lb_lyrics, font=basic_font, height=20)
+lyrics_text.pack(side="left", padx=4, fill="both", expand=True)
 
-set_preview_readonly(True)
+# memo
+lb_memo = tk.Label(frame2)
+lb_memo.pack(fill="x")
+memo_lbl = tk.Label(lb_memo, text='메모', font=bold_font)
+memo_lbl.pack(side="left")
+memo_input = tk.Entry(lb_memo)
+memo_input.pack(side="left", padx=4, fill="x", expand=True)
 
+# save, cancel buttons
+lb_previewButtons = tk.Label(frame2)
+lb_previewButtons.pack(side="bottom", fill="x")
+info_lbl = ttk.Label(lb_previewButtons, text='', foreground='#d7565d')
+info_lbl.pack(side="top")
+cancel_btn = tk.Button(lb_previewButtons, text='cancel', command=cancel, state='disabled')
+cancel_btn.pack(side="right", padx=4)
+save_btn = tk.Button(lb_previewButtons, text='save', command=save_song, state='disabled')
+save_btn.pack(side="right", padx=4)
+
+
+set_treeview_items(songs)
+set_readonly(True)
 
 if __name__ == '__main__':
     root.mainloop()

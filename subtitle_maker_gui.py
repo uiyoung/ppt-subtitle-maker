@@ -274,6 +274,7 @@ def add_song_list(song):
 
 def update_song_list(idx, new_song):
     songs[idx] = new_song
+    set_treeview_items(songs)
 
 
 def delete_song_from_list():
@@ -463,7 +464,7 @@ treeview.bind('<<TreeviewSelect>>', preview_song)
 # buttons
 lb_buttons = tk.Label(frame1)
 lb_buttons.pack(fill="x", anchor="e")
-update_btn = tk.Button(lb_buttons, text='수정', command=update_song_btn)
+update_btn = tk.Button(lb_buttons, text='수정', font=basic_font, command=update_song_btn)
 update_btn.pack(side="right", padx=2)
 remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
 remove_btn.pack(side="right", padx=2)
@@ -499,7 +500,7 @@ lb_title = tk.Label(frame2)
 lb_title.pack(fill="x")
 title_lbl = tk.Label(lb_title, text='제목', font=bold_font)
 title_lbl.pack(side="left")
-title_input = tk.Entry(lb_title, width=20)
+title_input = tk.Entry(lb_title, font=basic_font, width=20)
 title_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # lyrics
@@ -515,7 +516,7 @@ lb_memo = tk.Label(frame2)
 lb_memo.pack(fill="x")
 memo_lbl = tk.Label(lb_memo, text='메모', font=bold_font)
 memo_lbl.pack(side="left")
-memo_input = tk.Entry(lb_memo)
+memo_input = tk.Entry(lb_memo, font=basic_font)
 memo_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # save, cancel buttons

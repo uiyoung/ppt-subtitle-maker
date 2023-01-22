@@ -143,29 +143,40 @@ def open_search_window():
     search_window.title("Search Lyrics")
     search_window.geometry("640x420+400+100")
 
+    basic_font = font.Font(family="맑은 고딕", size=9)
+    bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
+
     search_frame1 = tk.Frame(search_window, relief="solid", bd=1)
     search_frame1.pack(side="left", fill="both", expand=True)
 
     search_frame2 = tk.Frame(search_window, relief="solid", bd=1)
     search_frame2.pack(side="right", fill="both", expand=True)
 
-    treeview_frame = tk.Frame(search_frame1)
+    # Search Frame1
+    search_label = tk.Label(search_frame1, text='Search', font=bold_font, bg="white", fg="red")
+    search_label.pack(fill="x", anchor="center")
 
     # combobox
+    lb_search = tk.Label(search_frame1)
+    lb_search.pack(fill="x")
     values = ['전체', '제목', '가사']
-    combobox = ttk.Combobox(search_frame1, values=values, state='readonly')
+    combobox = ttk.Combobox(lb_search, values=values, font=basic_font, width="8", state='readonly')
     combobox.current(0)
-    combobox.pack()
+    combobox.pack(side="left")
 
     # search entry
-    entry = tk.Entry(search_frame1)
+    entry = tk.Entry(lb_search, font=basic_font)
     entry.bind("<Return>", search_songs_enter)
-    entry.pack()
-    label = tk.Label(treeview_frame, text='검색결과 : ' + str(len(songs)))
-    label.pack(side="top")
+    entry.pack(side="left", fill="x", padx="4", expand=True)
 
-    search_btn = tk.Button(search_frame1, text='검색', command=lambda: search_songs(entry.get()))
-    search_btn.pack()
+    search_btn = tk.Button(lb_search, text='검색', font=basic_font, command=lambda: search_songs(entry.get()))
+    search_btn.pack(side="left")
+
+    treeview_frame = tk.Frame(search_frame1)
+    treeview_frame.pack()
+
+    label = tk.Label(treeview_frame, text='검색결과 : ' + str(len(songs)), font=bold_font)
+    label.pack(side="top")
 
     search_result_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"])
     search_result_tv.pack(side="left")
@@ -183,21 +194,26 @@ def open_search_window():
     search_result_tv.heading("#2", text="title", anchor="center")
     search_result_tv.bind('<<TreeviewSelect>>', preview_item)
 
-    treeview_frame.pack()
-
     # buttons
-    select_btn = tk.Button(search_frame1, text='선택', command=select_song)
-    select_btn.pack()
-    add_btn = tk.Button(search_frame1, text='DB 가사 등록', command=open_register_window)
-    add_btn.pack()
-    add_btn = tk.Button(search_frame1, text='DB 가사 삭제', command=delete_song)
-    add_btn.pack()
+    lb_search1 = tk.Label(search_frame1)
+    lb_search1.pack(fill="x")
+    select_btn = tk.Button(lb_search1, text='선택', font=basic_font, command=select_song)
+    select_btn.pack(side="right", pady="8")
+
+    lb_search2 = tk.Label(search_frame1)
+    lb_search2.pack(fill="x")
+    add_btn = tk.Button(lb_search2, text='DB 가사 등록', font=basic_font, command=open_register_window)
+    add_btn.pack(side="right")
+    add_btn = tk.Button(lb_search2, text='DB 가사 삭제', font=basic_font, command=delete_song)
+    add_btn.pack(side="right")
 
     # preview
     preview_frame = tk.Frame(search_frame2)
-    preview_label = tk.Label(search_frame2, text='Preview')
-    preview_label.pack()
-    preview_text = ScrolledText(search_frame2)
+
+    preview_label = tk.Label(search_frame2, text='Preview', font=bold_font, bg="white", fg="red")
+    preview_label.pack(fill="x", anchor="center")
+
+    preview_text = ScrolledText(search_frame2, font=basic_font)
     preview_text.pack()
     preview_frame.pack()
 

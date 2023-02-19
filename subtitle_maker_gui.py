@@ -11,10 +11,10 @@ import subtitle_maker
 
 # song_id, title, lyrics, type, memo
 songs = [
-    # (4, '꽃 들도2', '꽃들도2 테수투\n입니당\n\n깔깔\n', 'CCM', '굳굳'),
-    # (5, '꽃들도3', '꽃들도 세번째\n테수투 쿠쿠\n', 'CCM', '베리굿'),
-    # (6, '꽃들도5', '꽃들도5입니닫ㅇ\n', '찬송가', ''),
-    # (7, '꽃들도6', '하하동\n', 'CCM', '오오')
+    #    (1, '꽃 들도2', '꽃들도2 테수투\n입니당\n\n깔깔\n', 'CCM', '굳굳'),
+    #    (2, '꽃들도3', '꽃들도 세번째\n테수투 쿠쿠\n', 'CCM', '베리굿'),
+    #    (3, '꽃들도5', '꽃들도5입니닫ㅇ\n', '찬송가', ''),
+    #    (4, '꽃들도6', '하하동\n', 'CCM', '오오')
 ]
 
 song_types = ['찬송가', 'CCM', '기타']
@@ -366,6 +366,36 @@ def set_treeview_items(songs):
     label_var.set('추가된 곡 : ' + str(len(songs)) + '건')
 
 
+def list_up():
+    selected = treeview.focus()
+    if not selected:
+        messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
+        return
+
+    if int(selected) == 0:
+        return
+
+    target = songs[int(selected)]
+    songs.pop(int(selected))
+    songs.insert(int(selected)-1, target)
+    set_treeview_items(songs)
+
+
+def list_down():
+    selected = treeview.focus()
+    if not selected:
+        messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
+        return
+
+    if int(selected) == len(songs)-1:
+        return
+
+    target = songs[int(selected)]
+    songs.pop(int(selected))
+    songs.insert(int(selected)+1, target)
+    set_treeview_items(songs)
+
+
 def update_song_btn():
     selected = treeview.focus()
     if not selected:
@@ -480,6 +510,10 @@ treeview.bind('<<TreeviewSelect>>', preview_song)
 # buttons
 lb_buttons = tk.Label(frame1)
 lb_buttons.pack(fill="x", anchor="e")
+update_btn = tk.Button(lb_buttons, text=' ↑ ', font=basic_font, command=list_up)
+update_btn.pack(side="left", padx=2)
+update_btn = tk.Button(lb_buttons, text=' ↓ ', font=basic_font, command=list_down)
+update_btn.pack(side="left", padx=2)
 update_btn = tk.Button(lb_buttons, text='수정', font=basic_font, command=update_song_btn)
 update_btn.pack(side="right", padx=2)
 remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)

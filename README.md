@@ -1,4 +1,6 @@
 # PPT Subtitle Maker
+<image src="./resources/hymns.png" width=200>
+
 가사를 DB로 관리하고 콘티를 만들어서 PPT 자막 파일로 만들어 주는 앱
 
 
@@ -44,3 +46,6 @@ txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 - [ ] 종료시 추가된 곡 리스트 저장, 다시 실행시 불러오기
 - [ ] 선택된 곡 리스트 관리
 - [ ] cloud db
+
+## Copyright Information
+- <a href="https://www.flaticon.com/free-icons/hymns" title="hymns icons">Hymns icons created by Flat Icons - Flaticon</a>

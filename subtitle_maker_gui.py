@@ -209,10 +209,8 @@ def open_search_window():
 
     # preview
     preview_frame = tk.Frame(search_frame2)
-
     preview_label = tk.Label(search_frame2, text='Preview', font=bold_font, bg="white", fg="red")
     preview_label.pack(fill="x", anchor="center")
-
     preview_text = ScrolledText(search_frame2, font=basic_font)
     preview_text.pack()
     preview_frame.pack()
@@ -229,7 +227,6 @@ def open_register_window():
         memo = memo_input.get().strip()
 
         if not title:
-            # messagebox.showerror('error', 'please input title')
             info_lbl.configure(text='please input title')
             title_input.focus()
             return
@@ -253,33 +250,35 @@ def open_register_window():
 
     global add_window
     add_window = tk.Toplevel()
-    add_window.geometry("300x480+400+200")
+    add_window.geometry("300x580+400+200")
 
     # type
-    type_lbl = ttk.Label(add_window, text="type")
-    type_lbl.pack()
-    type_combobox = ttk.Combobox(add_window, values=song_types, state='readonly')
-    type_combobox.pack()
+    lb_1 = tk.Label(add_window)
+    lb_1.pack(fill="x")
+    type_lbl = ttk.Label(lb_1, font=bold_font, text="type")
+    type_lbl.pack(side="left")
+    type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, state='readonly')
+    type_combobox.pack(side="left")
     # title
-    title_lbl = ttk.Label(add_window, text="title")
+    title_lbl = ttk.Label(add_window, font=bold_font, text="title")
     title_lbl.pack()
-    title_input = tk.Entry(add_window)
+    title_input = tk.Entry(add_window, font=basic_font)
     title_input.pack()
     # lyrics
-    lyrics_lbl = ttk.Label(add_window, text="lyrics")
+    lyrics_lbl = ttk.Label(add_window, font=bold_font, text="lyrics")
     lyrics_lbl.pack()
-    lyrics_text = tk.Text(add_window)
+    lyrics_text = tk.Text(add_window, font=basic_font)
     lyrics_text.pack()
     # memo
-    memo_lbl = ttk.Label(add_window, text="memo")
+    memo_lbl = ttk.Label(add_window, font=bold_font, text="memo")
     memo_lbl.pack()
-    memo_input = tk.Entry(add_window)
+    memo_input = tk.Entry(add_window, font=basic_font)
     memo_input.pack()
     # register button
-    register_btn = tk.Button(add_window, text="등록", command=register_song)
+    register_btn = tk.Button(add_window, font=bold_font, text="등록", command=register_song)
     register_btn.pack()
     # info label
-    info_lbl = ttk.Label(add_window, text='', foreground='#d7565d')
+    info_lbl = ttk.Label(add_window, font=bold_font, text='', foreground='#d7565d')
     info_lbl.pack()
 
 

@@ -19,6 +19,9 @@ songs = [
 
 song_types = ['찬송가', 'CCM', '기타']
 
+search_window = None
+register_window = None
+
 
 def init_db():
     # DB 생성 (오토 커밋)
@@ -85,6 +88,14 @@ def delete_song_from_db(song_id):
         conn.close()
 
 
+def check_search_window():
+    if search_window != None and search_window.winfo_exists():
+        search_window.focus()
+        return
+
+    open_search_window()
+
+
 def open_search_window():
     """ 가사 검색&선택  윈도우 """
 
@@ -141,7 +152,7 @@ def open_search_window():
     global search_window
     search_window = tk.Toplevel(root)
     search_window.title("Search Lyrics")
-    search_window.geometry("640x420+400+100")
+    search_window.geometry("640x440+400+100")
 
     basic_font = font.Font(family="맑은 고딕", size=9)
     bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
@@ -159,7 +170,8 @@ def open_search_window():
     # combobox
     lb_search = tk.Label(search_frame1)
     lb_search.pack(fill="x")
-    values = ['전체', '제목', '가사']
+    # values = ['전체', '제목', '가사']
+    values = ['전체']
     combobox = ttk.Combobox(lb_search, values=values, font=basic_font, width="8", state='readonly')
     combobox.current(0)
     combobox.pack(side="left")
@@ -175,10 +187,10 @@ def open_search_window():
     treeview_frame = tk.Frame(search_frame1)
     treeview_frame.pack()
 
-    label = tk.Label(treeview_frame, text='검색결과 : ' + str(len(songs)), font=bold_font)
-    label.pack(side="top")
+    label = tk.Label(treeview_frame, text='검색 결과 : ' + str(len(songs)), font=bold_font)
+    label.pack(side="top", pady=4)
 
-    search_result_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"])
+    search_result_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=12)
     search_result_tv.pack(side="left")
 
     scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=search_result_tv.yview)
@@ -202,7 +214,7 @@ def open_search_window():
 
     lb_search2 = tk.Label(search_frame1)
     lb_search2.pack(fill="x")
-    add_btn = tk.Button(lb_search2, text='DB 가사 등록', font=basic_font, command=open_register_window)
+    add_btn = tk.Button(lb_search2, text='DB 가사 등록', font=basic_font, command=check_register_window)
     add_btn.pack(side="right")
     add_btn = tk.Button(lb_search2, text='DB 가사 삭제', font=basic_font, command=delete_song)
     add_btn.pack(side="right")
@@ -212,74 +224,87 @@ def open_search_window():
     preview_label = tk.Label(search_frame2, text='Preview', font=bold_font, bg="white", fg="red")
     preview_label.pack(fill="x", anchor="center")
     preview_text = ScrolledText(search_frame2, font=basic_font)
-    preview_text.pack()
+    preview_text.pack(fill="both", expand=True)
     preview_frame.pack()
 
     entry.focus()
+
+
+def check_register_window():
+    if register_window != None and register_window.winfo_exists():
+        register_window.focus()
+        return
+
+    open_register_window()
 
 
 def open_register_window():
     """ 가사등록 윈도우"""
     def register_song():
         title = title_input.get().strip()
-        lyrics = lyrics_text.get("1.0", tk.END)
+        lyrics = lyrics_text.get("1.0", tk.END).strip()
         type = type_combobox.get()
         memo = memo_input.get().strip()
 
         if not title:
-            info_lbl.configure(text='please input title')
+            info_lbl.configure(text='제목을 입력해주세요.')
             title_input.focus()
             return
         if lyrics == '\n' or (not lyrics):
-            info_lbl.configure(text='please input lyrics')
+            info_lbl.configure(text='가사를 입력해주세요.')
             lyrics_text.focus()
             return
         if not type:
-            info_lbl.configure(text='please select type')
+            info_lbl.configure(text='타입을 선택해 주세요.')
             type_combobox.focus()
             return
 
-        if messagebox.askyesno('가사 등록', title + ' 곡을 DB에 등록하시겠습니까?', parent=add_window):
+        if messagebox.askyesno('가사 등록', title + ' 곡을 DB에 등록하시겠습니까?', parent=register_window):
             song = [title, lyrics, type, memo]
             insert_song_to_db(song)
-        if messagebox.askyesno('가사 등록', title + ' 곡을 현재 목록에 추가 하시겠습니까?', parent=add_window):
+        if messagebox.askyesno('가사 등록', title + ' 곡을 현재 목록에 추가 하시겠습니까?', parent=register_window):
             song = ('', title, lyrics, type, memo)
             add_song_list(song)
             messagebox.showinfo('선택', title + ' 곡이 목록에 추가되었습니다.')
-            add_window.focus()
+            register_window.focus()
 
-    global add_window
-    add_window = tk.Toplevel()
-    add_window.geometry("300x580+400+200")
+    global register_window
+    register_window = tk.Toplevel()
+    register_window.geometry("300x520+700+100")
 
     # type
-    lb_1 = tk.Label(add_window)
+    lb_1 = tk.Label(register_window)
     lb_1.pack(fill="x")
-    type_lbl = ttk.Label(lb_1, font=bold_font, text="type")
+    type_lbl = ttk.Label(lb_1, font=bold_font, text="타입")
     type_lbl.pack(side="left")
-    type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, state='readonly')
+    type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, state='readonly', width=8)
     type_combobox.pack(side="left")
     # title
-    title_lbl = ttk.Label(add_window, font=bold_font, text="title")
-    title_lbl.pack()
-    title_input = tk.Entry(add_window, font=basic_font)
-    title_input.pack()
+    lb_2 = tk.Label(register_window)
+    lb_2.pack(fill="x")
+    title_lbl = ttk.Label(lb_2, font=bold_font, text="제목")
+    title_lbl.pack(side="left")
+    title_input = tk.Entry(lb_2, font=basic_font)
+    title_input.pack(side="left", fill="x", expand=True)
     # lyrics
-    lyrics_lbl = ttk.Label(add_window, font=bold_font, text="lyrics")
+    lyrics_lbl = ttk.Label(register_window, font=bold_font, text="가사")
     lyrics_lbl.pack()
-    lyrics_text = tk.Text(add_window, font=basic_font)
+    lyrics_text = tk.Text(register_window, font=basic_font)
     lyrics_text.pack()
     # memo
-    memo_lbl = ttk.Label(add_window, font=bold_font, text="memo")
-    memo_lbl.pack()
-    memo_input = tk.Entry(add_window, font=basic_font)
-    memo_input.pack()
+    lb_4 = tk.Label(register_window)
+    lb_4.pack(fill="x")
+    memo_lbl = ttk.Label(lb_4, font=bold_font, text="메모")
+    memo_lbl.pack(side="left")
+    memo_input = tk.Entry(lb_4, font=basic_font)
+    memo_input.pack(side="left", fill="x", expand=True)
+
     # register button
-    register_btn = tk.Button(add_window, font=bold_font, text="등록", command=register_song)
-    register_btn.pack()
+    register_btn = tk.Button(register_window, font=basic_font, text="등록", command=register_song)
+    register_btn.pack(pady=4)
     # info label
-    info_lbl = ttk.Label(add_window, font=bold_font, text='', foreground='#d7565d')
-    info_lbl.pack()
+    info_lbl = ttk.Label(register_window, font=bold_font, text='', foreground='#d7565d')
+    info_lbl.pack(pady=4)
 
 
 def add_song_list(song):
@@ -407,7 +432,7 @@ def update_song_btn():
 def save_song():
     song_id = id_lbl.cget('text')
     title = title_input.get().strip()
-    lyrics = lyrics_text.get("1.0", tk.END)
+    lyrics = lyrics_text.get("1.0", tk.END).strip()
     type = type_combobox.get()
     memo = memo_input.get().strip()
 
@@ -517,7 +542,8 @@ update_btn = tk.Button(lb_buttons, text='수정', font=basic_font, command=updat
 update_btn.pack(side="right", padx=2)
 remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
 remove_btn.pack(side="right", padx=2)
-search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=open_search_window)
+# search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=open_search_window)
+search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=check_search_window)
 search_btn.pack(side="right", padx=2)
 
 generate_btn = tk.Button(frame1, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=generate_ppt)

@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 import sqlite3
 import os
-import subtitle_maker
+import ppt_maker
 
 root = tk.Tk()
 root.title("PPT Subtitle Maker")

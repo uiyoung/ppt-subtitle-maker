@@ -6,21 +6,27 @@ from tkinter.scrolledtext import ScrolledText
 import tkinter.font as font
 import sqlite3
 import os
-import subtitle_maker
+import ppt_maker
 
 
 # song_id, title, lyrics, type, memo
-songs = [
-    #    (1, '꽃 들도2', '꽃들도2 테수투\n입니당\n\n깔깔\n', 'CCM', '굳굳'),
-    #    (2, '꽃들도3', '꽃들도 세번째\n테수투 쿠쿠\n', 'CCM', '베리굿'),
-    #    (3, '꽃들도5', '꽃들도5입니닫ㅇ\n', '찬송가', ''),
-    #    (4, '꽃들도6', '하하동\n', 'CCM', '오오')
-]
-
+# songs = [
+#    (1, '꽃 들도2', '꽃들도2 테수투\n입니당\n\n깔깔\n', 'CCM', '굳굳'),
+#    (2, '꽃들도3', '꽃들도 세번째\n테수투 쿠쿠\n', 'CCM', '베리굿'),
+#    (3, '꽃들도5', '꽃들도5입니닫ㅇ\n', '찬송가', ''),
+#    (4, '꽃들도6', '하하동\n', 'CCM', '오오')
+# ]
+songs = []
 song_types = ['찬송가', 'CCM', '기타']
 
-search_window = None
+global register_window
 register_window = None
+
+global selected_id  # 선택된 곡의 id
+selected_id = None
+
+global selected_tv  # 선택된 treeview
+selected_tv = None
 
 
 def init_db():
@@ -35,15 +41,33 @@ def init_db():
 
 
 def select_songs_from_db(title):
-    # DB 생성 (오토 커밋)
-    conn = sqlite3.connect("./jeil.db", isolation_level=None)
-    cur = conn.cursor()
-    sql = "SELECT * FROM song WHERE REPLACE(title, ' ', '') like '%' || REPLACE(?, ' ', '') || '%' "
-    cur.execute(sql, (title,))
-    data = cur.fetchall()
-    conn.close()
+    conn = None
+    try:
+        conn = sqlite3.connect("./jeil.db", isolation_level=None)
+        cur = conn.cursor()
+        sql = "SELECT * FROM song WHERE REPLACE(title, ' ', '') like '%' || REPLACE(?, ' ', '') || '%' "
+        cur.execute(sql, (title,))
+        data = cur.fetchall()
+        return data
+    except Exception as e:
+        messagebox.showerror('insert', 'error :' + e)
+    finally:
+        conn.close()
 
-    return data
+
+def select_song_by_id(song_id):
+    conn = None
+    try:
+        conn = sqlite3.connect("./jeil.db", isolation_level=None)
+        cur = conn.cursor()
+        sql = "SELECT * FROM song WHERE song_id=? "
+        cur.execute(sql, (song_id,))
+        data = cur.fetchone()
+        return data
+    except Exception as e:
+        messagebox.showerror('insert', 'error :' + e)
+    finally:
+        conn.close()
 
 
 def insert_song_to_db(song):
@@ -52,8 +76,9 @@ def insert_song_to_db(song):
         conn = sqlite3.connect("./jeil.db", isolation_level=None)
         cur = conn.cursor()
         sql = "INSERT INTO song(title, lyrics, type, memo) VALUES(?,?,?,?)"
-        cur.execute(sql, song)
+        result = cur.execute(sql, song)
         messagebox.showinfo('success', 'insert success')
+        return result.lastrowid
     except Exception as e:
         messagebox.showerror('insert', 'error :' + e)
     finally:
@@ -81,161 +106,12 @@ def delete_song_from_db(song_id):
         cur = conn.cursor()
         sql = "DELETE from song WHERE song_id = ?"
         cur.execute(sql, (song_id,))
-        messagebox.showinfo('delete', 'success', parent=search_window)
+        messagebox.showinfo('delete', 'success')
+        search_songs(search_entry.get())
     except Exception as e:
         messagebox.showerror('delete', 'error : ' + e)
     finally:
         conn.close()
-
-
-def check_search_window():
-    if search_window != None and search_window.winfo_exists():
-        search_window.focus()
-        return
-
-    open_search_window()
-
-
-def open_search_window():
-    """ 가사 검색&선택  윈도우 """
-
-    def search_songs_enter(e):
-        search_songs(entry.get())
-
-    def search_songs(title):
-        if not title.strip():
-            return
-
-        search_result_tv.delete(*search_result_tv.get_children())   # clear
-
-        global results
-        results = select_songs_from_db(title)
-        label.configure(text='검색 결과 : ' + str(len(results)) + '건')
-        if len(results) <= 0:
-            messagebox.showwarning('검색', '검색 결과가 없습니다.', parent=search_window)
-            entry.focus()
-            return
-
-        for i in range(len(results)):
-            search_result_tv.insert(parent='', index='end', text=i+1, values=results[i], iid=i)
-
-    def preview_item(e):
-        selected = search_result_tv.focus()
-        print(selected)
-        if not selected:
-            return
-
-        preview_text.delete("1.0", tk.END)
-        preview_text.insert(tk.CURRENT, results[int(selected)][2])
-
-    def select_song():
-        selected = search_result_tv.focus()
-        if not selected:
-            return
-
-        selected_song = results[int(selected)]
-        add_song_list(selected_song)
-        messagebox.showinfo('선택', selected_song[1] + ' 곡이 목록에 추가되었습니다.')
-        search_window.focus()
-
-    def delete_song():
-        selected = search_result_tv.focus()
-        if not selected:
-            messagebox.showwarning('삭제', '삭제할 곡을 먼저 선택해 주세요.', parent=search_window)
-            return
-
-        selected_song = results[int(selected)]
-        if messagebox.askokcancel('삭제', selected_song[1] + " 곡을 DB에서 삭제하시겠습니까?", parent=search_window):
-            delete_song_from_db(selected_song[0])
-            search_songs(entry.get())
-
-    global search_window
-    search_window = tk.Toplevel(root)
-    search_window.title("Search Lyrics")
-    search_window.geometry("640x440+400+100")
-
-    basic_font = font.Font(family="맑은 고딕", size=9)
-    bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
-
-    search_frame1 = tk.Frame(search_window, relief="solid", bd=1)
-    search_frame1.pack(side="left", fill="both", expand=True)
-
-    search_frame2 = tk.Frame(search_window, relief="solid", bd=1)
-    search_frame2.pack(side="right", fill="both", expand=True)
-
-    # Search Frame1
-    search_label = tk.Label(search_frame1, text='Search', font=bold_font, bg="white", fg="red")
-    search_label.pack(fill="x", anchor="center")
-
-    # combobox
-    lb_search = tk.Label(search_frame1)
-    lb_search.pack(fill="x")
-    # values = ['전체', '제목', '가사']
-    values = ['전체']
-    combobox = ttk.Combobox(lb_search, values=values, font=basic_font, width="8", state='readonly')
-    combobox.current(0)
-    combobox.pack(side="left")
-
-    # search entry
-    entry = tk.Entry(lb_search, font=basic_font)
-    entry.bind("<Return>", search_songs_enter)
-    entry.pack(side="left", fill="x", padx="4", expand=True)
-
-    search_btn = tk.Button(lb_search, text='검색', font=basic_font, command=lambda: search_songs(entry.get()))
-    search_btn.pack(side="left")
-
-    treeview_frame = tk.Frame(search_frame1)
-    treeview_frame.pack()
-
-    label = tk.Label(treeview_frame, text='검색 결과 : ' + str(len(songs)), font=bold_font)
-    label.pack(side="top", pady=4)
-
-    search_result_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=12)
-    search_result_tv.pack(side="left")
-
-    scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=search_result_tv.yview)
-    scrollbar.pack(side="right", fill="y")
-    search_result_tv.configure(yscrollcommand=scrollbar.set)
-
-    # treeview["show"] = "headings"
-    search_result_tv.column("#0", width=40, anchor="center")
-    search_result_tv.column("#1", width=40, anchor="center")
-    search_result_tv.column("#2", width=200)
-    search_result_tv.heading("#0", text="no", anchor="center")
-    search_result_tv.heading("#1", text="id", anchor="center")
-    search_result_tv.heading("#2", text="title", anchor="center")
-    search_result_tv.bind('<<TreeviewSelect>>', preview_item)
-
-    # buttons
-    lb_search1 = tk.Label(search_frame1)
-    lb_search1.pack(fill="x")
-    select_btn = tk.Button(lb_search1, text='선택', font=basic_font, command=select_song)
-    select_btn.pack(side="right", pady="8")
-
-    lb_search2 = tk.Label(search_frame1)
-    lb_search2.pack(fill="x")
-    add_btn = tk.Button(lb_search2, text='DB 가사 등록', font=basic_font, command=check_register_window)
-    add_btn.pack(side="right")
-    add_btn = tk.Button(lb_search2, text='DB 가사 삭제', font=basic_font, command=delete_song)
-    add_btn.pack(side="right")
-
-    # preview
-    preview_frame = tk.Frame(search_frame2)
-    preview_label = tk.Label(search_frame2, text='Preview', font=bold_font, bg="white", fg="red")
-    preview_label.pack(fill="x", anchor="center")
-    preview_text = ScrolledText(search_frame2, font=basic_font)
-    preview_text.pack(fill="both", expand=True)
-    preview_frame.pack()
-
-    entry.focus()
-
-
-def check_register_window():
-    if register_window != None and register_window.winfo_exists():
-        register_window.focus()
-        return
-
-    open_register_window()
 
 
 def open_register_window():
@@ -259,33 +135,40 @@ def open_register_window():
             type_combobox.focus()
             return
 
-        if messagebox.askyesno('가사 등록', title + ' 곡을 DB에 등록하시겠습니까?', parent=register_window):
-            song = [title, lyrics, type, memo]
-            insert_song_to_db(song)
+        if messagebox.askyesno('가사 등록', title + ' 곡을 DB에 등록 하시겠습니까?', parent=register_window):
+            new_song = [title, lyrics, type, memo]
+            new_song_id = insert_song_to_db(new_song)
         if messagebox.askyesno('가사 등록', title + ' 곡을 현재 목록에 추가 하시겠습니까?', parent=register_window):
-            song = ('', title, lyrics, type, memo)
-            add_song_list(song)
-            messagebox.showinfo('선택', title + ' 곡이 목록에 추가되었습니다.')
+            new_song = (new_song_id, title, lyrics, type, memo)
+            songs.append(new_song)
+            set_treeview_items(songs)
+
+            messagebox.showinfo('가사 등록', title + ' 곡이 목록에 추가되었습니다.')
             register_window.focus()
 
     global register_window
+    if register_window != None and register_window.winfo_exists():
+        register_window.focus()
+        return
+
     register_window = tk.Toplevel()
-    register_window.geometry("300x520+700+100")
+    register_window.title("New Lyrics")
+    register_window.geometry("280x512+300+100")
 
     # type
     lb_1 = tk.Label(register_window)
     lb_1.pack(fill="x")
     type_lbl = ttk.Label(lb_1, font=bold_font, text="타입")
-    type_lbl.pack(side="left")
+    type_lbl.pack(side="left", padx=2)
     type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, state='readonly', width=8)
-    type_combobox.pack(side="left")
+    type_combobox.pack(side="left", padx=2)
     # title
     lb_2 = tk.Label(register_window)
     lb_2.pack(fill="x")
     title_lbl = ttk.Label(lb_2, font=bold_font, text="제목")
-    title_lbl.pack(side="left")
+    title_lbl.pack(side="left", padx=2)
     title_input = tk.Entry(lb_2, font=basic_font)
-    title_input.pack(side="left", fill="x", expand=True)
+    title_input.pack(side="left", fill="x", expand=True, padx=2)
     # lyrics
     lyrics_lbl = ttk.Label(register_window, font=bold_font, text="가사")
     lyrics_lbl.pack()
@@ -295,36 +178,40 @@ def open_register_window():
     lb_4 = tk.Label(register_window)
     lb_4.pack(fill="x")
     memo_lbl = ttk.Label(lb_4, font=bold_font, text="메모")
-    memo_lbl.pack(side="left")
+    memo_lbl.pack(side="left", padx=2)
     memo_input = tk.Entry(lb_4, font=basic_font)
-    memo_input.pack(side="left", fill="x", expand=True)
+    memo_input.pack(side="left", fill="x", expand=True, padx=2)
 
     # register button
     register_btn = tk.Button(register_window, font=basic_font, text="등록", command=register_song)
     register_btn.pack(pady=4)
     # info label
     info_lbl = ttk.Label(register_window, font=bold_font, text='', foreground='#d7565d')
-    info_lbl.pack(pady=4)
+    info_lbl.pack()
+
+    title_input.focus()
 
 
-def add_song_list(song):
-    songs.append(song)
-    set_treeview_items(songs)
-
-
-def update_song_list(idx, new_song):
-    songs[idx] = new_song
-    set_treeview_items(songs)
-
-
-def delete_song_from_list():
-    selected = treeview.focus()
-    if not selected:
-        messagebox.showwarning('삭제', '삭제할 아이템을 먼저 선택해주세요')
+def search_songs(title):
+    if not title.strip():
         return
 
-    songs.pop(int(selected))
-    set_treeview_items(songs)
+    search_tv.delete(*search_tv.get_children())   # clear tv
+
+    global results
+    results = select_songs_from_db(title)
+    label.configure(text='검색 결과 : ' + str(len(results)) + '건')
+    if len(results) <= 0:
+        messagebox.showwarning('검색', '검색 결과가 없습니다.')
+        search_entry.focus()
+        return
+
+    for i in range(len(results)):
+        search_tv.insert(parent='', index='end', text=i+1, values=results[i], iid=i)
+
+
+def search_songs_enter(e):
+    search_songs(search_entry.get())
 
 
 def set_readonly(flag):
@@ -337,61 +224,167 @@ def set_readonly(flag):
     cancel_btn.configure(state=new_state)
 
 
-def clear_preview_widgets():
-    id_lbl_var.set('')
+def clear_preview():
+    set_readonly(False)
     type_combobox.set('')
+    id_lbl_var.set('')
     title_input.delete(0, 'end')
     lyrics_text.delete("1.0", tk.END)
     memo_input.delete(0, 'end')
     info_lbl.configure(text='')
+    set_readonly(True)
 
 
-def preview_song(e):
-    selected = treeview.focus()
+def preview_song_by_id(song_id):
+    song = select_song_by_id(song_id)
+
+    id = song[0]
+    title = song[1]
+    lyrics = song[2]
+    type = song[3]
+    memo = song[4]
+
+    set_readonly(False)
+    type_combobox.set(type)
+    id_lbl_var.set(id)
+    title_input.delete(0, 'end')
+    title_input.insert(0, title)
+    lyrics_text.delete("1.0", tk.END)
+    lyrics_text.insert(tk.CURRENT, lyrics)
+    memo_input.delete(0, 'end')
+    memo_input.insert(0, memo)
+    info_lbl.configure(text='')
+    set_readonly(True)
+
+
+def preview_song(e, obj):
+    global selected_tv
+    if obj == 'search':  # search_tv item누른 경우
+        selected_tv = search_tv
+    elif obj == 'list':  # list_tv item누른 경우
+        selected_tv = list_tv
+
+    idx = selected_tv.focus()
+    if not idx:
+        return
+
+    global selected_id
+    selected_id = selected_tv.item(idx)['values'][0]
+    preview_song_by_id(selected_id)
+
+
+def delete_song():
+    selected = search_tv.focus()
     if not selected:
+        messagebox.showwarning('삭제', '삭제할 곡을 먼저 선택해 주세요.')
+        return
+
+    selected_song = results[int(selected)]
+    if messagebox.askokcancel('삭제', selected_song[1] + " 곡을 DB에서 삭제하시겠습니까?"):
+        delete_song_from_db(selected_song[0])
+        search_songs(search_entry.get())
+
+
+def add_to_list():
+    idx = search_tv.focus()
+    if not idx:
+        return
+
+    selected_song = results[int(idx)]
+    songs.append(selected_song)
+    set_treeview_items(songs)
+
+
+def update_song_btn():
+    print('edit id: ', selected_id)
+
+    if not selected_id:
+        messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
         return
 
     set_readonly(False)
-    clear_preview_widgets()
 
-    selected = int(selected)
-    print(selected)
 
-    id = songs[selected][0]
-    title = songs[selected][1]
-    lyrics = songs[selected][2]
-    type = songs[selected][3]
-    memo = songs[selected][4]
+def save_edited():
+    song_id = id_lbl.cget('text')
+    title = title_input.get().strip()
+    lyrics = lyrics_text.get("1.0", tk.END).strip()
+    type = type_combobox.get()
+    memo = memo_input.get().strip()
 
-    id_lbl_var.set(id)
-    title_input.insert(0, title)
-    lyrics_text.insert(tk.CURRENT, lyrics)
-    type_combobox.set(type)
-    memo_input.insert(0, memo)
+    if not song_id:
+        info_lbl.configure(text='no song id exists.')
+        return
+    if not type:
+        info_lbl.configure(text='please select type.')
+        type_combobox.focus()
+        return
+    if not title:
+        info_lbl.configure(text='please input title.')
+        title_input.focus()
+        return
+    if lyrics == '\n' or (not lyrics):
+        info_lbl.configure(text='please input lyrics.')
+        lyrics_text.focus()
+        return
 
-    set_readonly(True)
+    if messagebox.askyesno('수정', 'DB에 수정된 내용을 저장 하시겠습니까?'):
+        # update db
+        song = (title, lyrics, type, memo)
+        update_song_to_db(song, song_id)
+
+        # update list_tv
+        for idx, song in enumerate(songs):
+            if song[0] == song_id:
+                songs[idx] = (song_id, title, lyrics, type, memo)
+                set_treeview_items(songs)
+
+        # update search_tv
+        if selected_tv == search_tv:
+            search_songs(search_entry.get())
+
+        set_readonly(True)
+
+
+def cancel_edited():
+    if messagebox.askyesno('cancel', '수정을 취소하시겠습니까?'):
+        song = select_song_by_id(selected_id)
+        preview_song(None, song)
+        set_readonly(True)
+
+
+def set_treeview_items(songs):
+    list_tv.delete(*list_tv.get_children())  # clear tv
+
+    for i in range(len(songs)):
+        list_tv.insert(parent='', index='end', text=i+1, values=songs[i], iid=i)
+
+    label_var.set('추가된 곡 : ' + str(len(songs)) + '건')
 
 
 def clear_song_list():
     if len(songs) <= 0:
         return
-    if messagebox.askokcancel('clear', "추가된 곡목록을 초기화 하시겠습니까?"):
+    if messagebox.askokcancel('clear', "추가된 곡 목록을 초기화 하시겠습니까?"):
         songs.clear()
-        treeview.focus('')
         set_treeview_items(songs)
+        list_tv.focus('')
+        search_tv.focus('')
+        clear_preview()
 
 
-def set_treeview_items(songs):
-    treeview.delete(*treeview.get_children())
+def delete_song_from_list():
+    selected = list_tv.focus()
+    if not selected:
+        messagebox.showwarning('제거', '목록에서 제거할 아이템을 먼저 선택해주세요')
+        return
 
-    for i in range(len(songs)):
-        treeview.insert(parent='', index='end', text=i+1, values=(songs[i][1],), iid=i)
-
-    label_var.set('추가된 곡 : ' + str(len(songs)) + '건')
+    songs.pop(int(selected))
+    set_treeview_items(songs)
 
 
 def list_up():
-    selected = treeview.focus()
+    selected = list_tv.focus()
     if not selected:
         messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
         return
@@ -406,7 +399,7 @@ def list_up():
 
 
 def list_down():
-    selected = treeview.focus()
+    selected = list_tv.focus()
     if not selected:
         messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
         return
@@ -418,50 +411,6 @@ def list_down():
     songs.pop(int(selected))
     songs.insert(int(selected)+1, target)
     set_treeview_items(songs)
-
-
-def update_song_btn():
-    selected = treeview.focus()
-    if not selected:
-        messagebox.showwarning('수정', '수정할 아이템을 먼저 선택해주세요')
-        return
-
-    set_readonly(False)
-
-
-def save_song():
-    song_id = id_lbl.cget('text')
-    title = title_input.get().strip()
-    lyrics = lyrics_text.get("1.0", tk.END).strip()
-    type = type_combobox.get()
-    memo = memo_input.get().strip()
-
-    if not type:
-        info_lbl.configure(text='please select type')
-        type_combobox.focus()
-        return
-    if not title:
-        info_lbl.configure(text='please input title')
-        title_input.focus()
-        return
-    if lyrics == '\n' or (not lyrics):
-        info_lbl.configure(text='please input lyrics')
-        lyrics_text.focus()
-        return
-
-    selected = treeview.focus()
-    if messagebox.askyesno('수정', '수정 내용을 반영 하시겠습니까?'):
-        song = (song_id, title, lyrics, type, memo)
-        update_song_list(int(selected), song)
-    if song_id:
-        if messagebox.askyesno('수정', 'DB에 수정된 내용을 반영하시겠습니까?'):
-            song = (title, lyrics, type, memo)
-            update_song_to_db(song, song_id)
-
-
-def cancel():
-    if messagebox.askyesno('cancel', '수정을 취소하시겠습니까?'):
-        preview_song(None)
 
 
 def generate_ppt():
@@ -476,84 +425,99 @@ def generate_ppt():
     if not path:
         return
 
-    subtitle_maker.generate_ppt(songs, path)
+    ppt_maker.generate_ppt(songs, path)
     os.startfile(path + '.pptx')
 
 
 init_db()
-selected_idx = ''   # treeview에서 선택된 인덱스('': 선택안됨)
 
 root = tk.Tk()
 root.title("PPT Subtitle Maker")
-root.geometry("640x460+100+100")
+root.geometry("990x490+100+100")
 
 # fonts
 basic_font = font.Font(family="맑은 고딕", size=9)
 bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
 
-frame1 = tk.Frame(root, relief="groove", bd=2)
-frame1.pack(side="left", fill="y", padx=4, anchor="n")
-
+# frames
+frame1 = tk.Frame(root, relief="groove", bd=2, bg="#E5E9F0")
 frame2 = tk.Frame(root, relief="groove", bd=2)
-frame2.pack(side="left", fill="y", padx=4, anchor="n")
+frame3 = tk.Frame(root, relief="groove", bd=2)
+frame1.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
+frame2.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
+frame3.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
 
-lb_bottom = tk.Label(root, bg="#f00")
-lb_bottom.pack(side="bottom", fill="x")
+"""
+frame1 - Search
+"""
 
-# frame title
-list_label = tk.Label(frame1, text='List', font=bold_font, bg="white", fg="red")
-list_label.pack(fill="x", anchor="center")
+lb_frame1_title = tk.Label(frame1, text='Search', font=bold_font, bg="white", fg="#BF616A")
+lb_frame1_title.pack(fill="x", anchor="center")
 
-# 추가된 곡 건수 label
-lb_status = tk.Label(frame1)
-lb_status.pack(fill="x")
-label_var = tk.StringVar(value='')
-lb_list_info = tk.Label(lb_status, font=bold_font, textvariable=label_var)
-lb_list_info.pack(side="left")
+# combobox
+lb_search = tk.Label(frame1, bg="#E5E9F0")
+lb_search.pack(fill="x")
+# values = ['전체', '제목', '가사']
+values = ['제목']
+combobox = ttk.Combobox(lb_search, values=values, font=basic_font, width="8", state='readonly')
+combobox.current(0)
+combobox.pack(side="left")
 
-# clear button
-clear_btn = tk.Button(lb_status, text="clear", command=clear_song_list)
-clear_btn.pack(side="right", padx=2)
+# search search_entry
+search_entry = tk.Entry(lb_search, font=basic_font)
+search_entry.bind("<Return>", search_songs_enter)
+search_entry.pack(side="left", fill="x", padx=4, expand=True)
 
-# 추가된 곡 리스트
-treeview_frame = tk.Frame(frame1)
+# search button
+search_btn = tk.Button(lb_search, text='검색', font=basic_font, fg="#2E3440", command=lambda: search_songs(search_entry.get()))
+search_btn.pack(side="left", padx=2)
+
+# search result
+label = tk.Label(frame1, text='검색 결과 : ' + str(len(songs)), font=bold_font, bg="#E5E9F0")
+label.pack(side="top", pady=4, fill="x")
+
+# treeview - 검색 결과
+treeview_frame = tk.Frame(frame1, bg="#E5E9F0")
 treeview_frame.pack(padx=4, pady=4)
-treeview = ttk.Treeview(treeview_frame, columns=["title"], displaycolumns=["title"], height=12)
-treeview.pack(side="left")
-scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=treeview.yview)
-scrollbar.pack(side="right", fill="y")
-treeview.configure(yscrollcommand=scrollbar.set)
+search_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14)
+search_tv.pack(side="left")
 
 # treeview["show"] = "headings"
-treeview.column("#0", width=40, anchor="center")
-treeview.heading("#0", text="no", anchor="center")
-treeview.column("#1", width=200)
-treeview.heading("#1", text="title", anchor="center")
-treeview.bind('<<TreeviewSelect>>', preview_song)
+search_tv.heading("#0", text="no")
+search_tv.heading("#1", text="id")
+search_tv.heading("#2", text="title")
+search_tv.column("#0", width=40, anchor="center")
+search_tv.column("#1", width=40, anchor="center")
+search_tv.column("#2", width=220)
+search_tv.bind('<<TreeviewSelect>>', lambda e, obj='search': preview_song(e, obj))
+
+scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=search_tv.yview)
+scrollbar.pack(side="right", fill="y")
+search_tv.configure(yscrollcommand=scrollbar.set)
+
 
 # buttons
-lb_buttons = tk.Label(frame1)
-lb_buttons.pack(fill="x", anchor="e")
-update_btn = tk.Button(lb_buttons, text=' ↑ ', font=basic_font, command=list_up)
-update_btn.pack(side="left", padx=2)
-update_btn = tk.Button(lb_buttons, text=' ↓ ', font=basic_font, command=list_down)
-update_btn.pack(side="left", padx=2)
-update_btn = tk.Button(lb_buttons, text='수정', font=basic_font, command=update_song_btn)
-update_btn.pack(side="right", padx=2)
-remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
-remove_btn.pack(side="right", padx=2)
-# search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=open_search_window)
-search_btn = tk.Button(lb_buttons, text='추가', font=basic_font, command=check_search_window)
-search_btn.pack(side="right", padx=2)
+lb_search2 = tk.Label(frame1, bg="#E5E9F0")
+lb_search2.pack(fill="x")
+add_btn = tk.Button(lb_search2, text='가사 삭제', font=basic_font, command=delete_song)
+add_btn.pack(side="left", padx=2)
+add_btn = tk.Button(lb_search2, text='새 가사 등록', font=basic_font, command=open_register_window)
+add_btn.pack(side="left", padx=2)
+add_to_list_btn = tk.Button(frame1, text='목록에 추가', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=add_to_list)
+add_to_list_btn.pack(side="bottom", fill="x", padx=8, pady=8)
 
-generate_btn = tk.Button(frame1, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=generate_ppt)
-generate_btn.pack(side="bottom", fill="x", padx=16, pady=8)
-
-# preview frame
+"""
+frame 2 - Preview
+"""
 
 # frame title
-preview_label = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="red")
-preview_label.pack(fill="x", anchor="center")
+lb_frame2_title = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="red")
+lb_frame2_title.pack(fill="x")
+
+# ID
+id_lbl_var = tk.StringVar(value='')
+id_lbl = tk.Label(frame2, textvariable=id_lbl_var)
+id_lbl.pack(anchor="e", padx=4)
 
 # type
 lb_type = tk.Label(frame2)
@@ -563,19 +527,13 @@ type_lbl.pack(side="left")
 type_combobox = ttk.Combobox(lb_type, values=song_types, width=10, state='readonly')
 type_combobox.pack(side="left", padx=4)
 
-# id
-id_lbl = tk.Label(lb_type, text='ID', font=bold_font)
-id_lbl.pack(side="left")
-id_lbl_var = tk.StringVar()
-id_lbl = tk.Label(lb_type, textvariable=id_lbl_var)
-id_lbl.pack(side="left")
-
 # title
 lb_title = tk.Label(frame2)
 lb_title.pack(fill="x")
 title_lbl = tk.Label(lb_title, text='제목', font=bold_font)
 title_lbl.pack(side="left")
 title_input = tk.Entry(lb_title, font=basic_font, width=20)
+title_input.pack()
 title_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # lyrics
@@ -583,8 +541,8 @@ lb_lyrics = tk.Label(frame2)
 lb_lyrics.pack(fill="x")
 lyrics_lbl = tk.Label(lb_lyrics, text='가사', font=bold_font)
 lyrics_lbl.pack(side="left", anchor="n")
-lyrics_text = ScrolledText(lb_lyrics, font=basic_font, height=20)
-lyrics_text.pack(side="left", padx=4, fill="both", expand=True)
+lyrics_text = ScrolledText(lb_lyrics, font=basic_font, height=20, width=34)
+lyrics_text.pack(side="left", padx=4, fill="both")
 
 # memo
 lb_memo = tk.Label(frame2)
@@ -596,17 +554,73 @@ memo_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # save, cancel buttons
 lb_previewButtons = tk.Label(frame2)
-lb_previewButtons.pack(side="bottom", fill="x")
-info_lbl = ttk.Label(lb_previewButtons, text='', foreground='#d7565d')
-info_lbl.pack(side="top")
-cancel_btn = tk.Button(lb_previewButtons, text='cancel', command=cancel, state='disabled')
-cancel_btn.pack(side="right", padx=4)
-save_btn = tk.Button(lb_previewButtons, text='save', command=save_song, state='disabled')
-save_btn.pack(side="right", padx=4)
+lb_previewButtons.pack(side="bottom", fill="x", pady=4)
+cancel_btn = tk.Button(lb_previewButtons, text='취소', command=cancel_edited, state='disabled')
+cancel_btn.pack(side="right", padx=2)
+save_btn = tk.Button(lb_previewButtons, text='저장', command=save_edited, state='disabled')
+save_btn.pack(side="right", padx=2)
+update_btn = tk.Button(lb_previewButtons, text='수정', font=basic_font, command=update_song_btn)
+update_btn.pack(side="right", padx=2)
+
+# info
+info_lbl = tk.Label(frame2, text='', fg='#d7565d')
+info_lbl.pack(side="bottom")
 
 
-set_treeview_items(songs)
+"""
+frame3 - List
+"""
+
+# frame title
+list_label = tk.Label(frame3, text='List', font=bold_font, bg="#fffffe", fg="#ff8ba7")
+list_label.pack(fill="x", anchor="center")
+
+# clear button
+clear_btn = tk.Button(list_label, text="clear", command=clear_song_list)
+clear_btn.pack(side="right", padx=2)
+
+# 추가된 곡 건수 label
+lb_status = tk.Label(frame3)
+lb_status.pack(fill="x")
+label_var = tk.StringVar(value='추가된 곡 : 0건')
+lb_list_info = tk.Label(lb_status, font=bold_font, textvariable=label_var)
+lb_list_info.pack(pady=4)
+
+# treeview - 추가된 곡 리스트
+treeview_frame = tk.Frame(frame3)
+treeview_frame.pack(padx=4)
+list_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14)
+list_tv.pack(side="left")
+
+# list_tv["show"] = "headings"
+list_tv.heading("#0", text="no")
+list_tv.heading("#1", text="id")
+list_tv.heading("#2", text="title")
+list_tv.column("#0", width=40, anchor="center")
+list_tv.column("#1", width=40, anchor="center")
+list_tv.column("#2", width=220)
+list_tv.bind('<<TreeviewSelect>>', lambda e, obj='list': preview_song(e, obj))
+
+scrollbar = ttk.Scrollbar(treeview_frame, orient="vertical", command=list_tv.yview)
+scrollbar.pack(side="right", fill="y")
+list_tv.configure(yscrollcommand=scrollbar.set)
+
+# buttons
+lb_buttons = tk.Label(frame3)
+lb_buttons.pack(fill="x", anchor="e")
+update_btn = tk.Button(lb_buttons, text=' ↑ ', font=basic_font, command=list_up)
+update_btn.pack(side="left", padx=2, pady=2)
+update_btn = tk.Button(lb_buttons, text=' ↓ ', font=basic_font, command=list_down)
+update_btn.pack(side="left", padx=2, pady=2)
+remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
+remove_btn.pack(side="right", padx=2, pady=2)
+
+generate_btn = tk.Button(frame3, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=generate_ppt)
+generate_btn.pack(side="bottom", fill="x", padx=16, pady=8)
+
+# set_treeview_items(songs)
 set_readonly(True)
+search_entry.focus()
 
 if __name__ == '__main__':
     root.mainloop()

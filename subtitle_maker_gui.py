@@ -19,13 +19,16 @@ import ppt_maker
 songs = []
 song_types = ['찬송가', 'CCM', '기타']
 
+# 가사등록 윈도우
 global register_window
 register_window = None
 
-global selected_id  # 선택된 곡의 id
+# 선택된 곡의 id
+global selected_id
 selected_id = None
 
-global selected_tv  # 선택된 treeview
+# 선택된 treeview
+global selected_tv
 selected_tv = None
 
 
@@ -114,6 +117,36 @@ def delete_song_from_db(song_id):
         conn.close()
 
 
+def auto_format_lyrics(target):
+    lyrics = target.strip().split('\n')
+    lyrics = list(filter(lambda x: x != '' and x != ' ' and x != '  ', lyrics))
+
+    # 긴 가사 둘로 나누기
+    for idx, line in enumerate(lyrics):
+        if len(line) > 24:
+            splited_line = line.split(' ')
+            half = len(splited_line) // 2
+            lyrics[idx] = ' '.join(splited_line[:half])
+            lyrics.insert(idx+1, ' '.join(splited_line[half:]))
+
+    # 두줄 씩 나누기
+    new_lyrics = ''
+    for i, line in enumerate(lyrics):
+        new_lyrics += (line + '\n')
+        if i % 2 == 1:
+            new_lyrics += '\n'
+
+    new_lyrics = new_lyrics.strip()
+    return new_lyrics
+
+
+def on_click_auto_format():
+    target = lyrics_text.get("1.0", tk.END).strip()
+    new_lyrics = auto_format_lyrics(target)
+    lyrics_text.delete("1.0", tk.END)
+    lyrics_text.insert(tk.CURRENT, new_lyrics)
+
+
 def open_register_window():
     """ 가사등록 윈도우"""
     def register_song():
@@ -146,6 +179,12 @@ def open_register_window():
             messagebox.showinfo('가사 등록', title + ' 곡이 목록에 추가되었습니다.')
             register_window.focus()
 
+    def on_click_auto_format():
+        target = lyrics_text.get("1.0", tk.END).strip()
+        new_lyrics = auto_format_lyrics(target)
+        lyrics_text.delete("1.0", tk.END)
+        lyrics_text.insert(tk.CURRENT, new_lyrics)
+
     global register_window
     if register_window != None and register_window.winfo_exists():
         register_window.focus()
@@ -153,7 +192,7 @@ def open_register_window():
 
     register_window = tk.Toplevel()
     register_window.title("New Lyrics")
-    register_window.geometry("280x512+300+100")
+    register_window.geometry("280x516+300+100")
 
     # type
     lb_1 = tk.Label(register_window)
@@ -182,12 +221,17 @@ def open_register_window():
     memo_input = tk.Entry(lb_4, font=basic_font)
     memo_input.pack(side="left", fill="x", expand=True, padx=2)
 
-    # register button
-    register_btn = tk.Button(register_window, font=basic_font, text="등록", command=register_song)
-    register_btn.pack(pady=4)
     # info label
     info_lbl = ttk.Label(register_window, font=bold_font, text='', foreground='#d7565d')
-    info_lbl.pack()
+    info_lbl.pack(anchor="center")
+
+    # 가사 자동정렬 button
+    auto_format_btn = tk.Button(register_window, font=basic_font, text="가사 자동정렬 ", command=on_click_auto_format)
+    auto_format_btn.pack(side="left", padx=4, pady=4)
+
+    # register button
+    register_btn = tk.Button(register_window, font=basic_font, text="등록", command=register_song)
+    register_btn.pack(side="right", padx=4, pady=4)
 
     title_input.focus()
 
@@ -220,6 +264,7 @@ def set_readonly(flag):
     lyrics_text.configure(state=new_state)
     memo_input.configure(state=new_state)
     type_combobox.configure(state='disabled' if flag else 'readonly')
+    auto_format_btn.configure(state=new_state)
     save_btn.configure(state=new_state)
     cancel_btn.configure(state=new_state)
 
@@ -499,11 +544,11 @@ search_tv.configure(yscrollcommand=scrollbar.set)
 # buttons
 lb_search2 = tk.Label(frame1, bg="#E5E9F0")
 lb_search2.pack(fill="x")
-add_btn = tk.Button(lb_search2, text='가사 삭제', font=basic_font, command=delete_song)
-add_btn.pack(side="left", padx=2)
 add_btn = tk.Button(lb_search2, text='새 가사 등록', font=basic_font, command=open_register_window)
-add_btn.pack(side="left", padx=2)
-add_to_list_btn = tk.Button(frame1, text='목록에 추가', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=add_to_list)
+add_btn.pack(side="right", padx=2)
+add_btn = tk.Button(lb_search2, text='가사 삭제', font=basic_font, command=delete_song)
+add_btn.pack(side="right", padx=2)
+add_to_list_btn = tk.Button(frame1, text='목록에 추가', width=16, height=2, font=bold_font, bg='#fff', fg='#2E3440', command=add_to_list)
 add_to_list_btn.pack(side="bottom", fill="x", padx=8, pady=8)
 
 """
@@ -559,6 +604,8 @@ cancel_btn = tk.Button(lb_previewButtons, text='취소', command=cancel_edited, 
 cancel_btn.pack(side="right", padx=2)
 save_btn = tk.Button(lb_previewButtons, text='저장', command=save_edited, state='disabled')
 save_btn.pack(side="right", padx=2)
+auto_format_btn = tk.Button(lb_previewButtons, text='가사 자동정렬', font=basic_font, command=on_click_auto_format)
+auto_format_btn.pack(side="right", padx=2)
 update_btn = tk.Button(lb_previewButtons, text='수정', font=basic_font, command=update_song_btn)
 update_btn.pack(side="right", padx=2)
 

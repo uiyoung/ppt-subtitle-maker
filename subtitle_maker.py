@@ -199,7 +199,7 @@ def open_register_window():
     lb_1.pack(fill="x")
     type_lbl = ttk.Label(lb_1, font=bold_font, text="타입")
     type_lbl.pack(side="left", padx=2)
-    type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, state='readonly', width=8)
+    type_combobox = ttk.Combobox(lb_1, font=basic_font, values=song_types, width=8, state='readonly')
     type_combobox.pack(side="left", padx=2)
     # title
     lb_2 = tk.Label(register_window)
@@ -496,7 +496,7 @@ frame3.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
 frame1 - Search
 """
 
-lb_frame1_title = tk.Label(frame1, text='Search', font=bold_font, bg="white", fg="#BF616A")
+lb_frame1_title = tk.Label(frame1, text='Search', font=bold_font, bg="white", fg="#ff8ba7")
 lb_frame1_title.pack(fill="x", anchor="center")
 
 # combobox
@@ -556,7 +556,7 @@ frame 2 - Preview
 """
 
 # frame title
-lb_frame2_title = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="red")
+lb_frame2_title = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="#ff8ba7")
 lb_frame2_title.pack(fill="x")
 
 # ID
@@ -569,7 +569,7 @@ lb_type = tk.Label(frame2)
 lb_type.pack(fill="x")
 type_lbl = tk.Label(lb_type, text='구분', font=bold_font)
 type_lbl.pack(side="left")
-type_combobox = ttk.Combobox(lb_type, values=song_types, width=10, state='readonly')
+type_combobox = ttk.Combobox(lb_type, values=song_types, width=10, state='readonly', font=basic_font)
 type_combobox.pack(side="left", padx=4)
 
 # title
@@ -600,9 +600,9 @@ memo_input.pack(side="left", padx=4, fill="x", expand=True)
 # save, cancel buttons
 lb_previewButtons = tk.Label(frame2)
 lb_previewButtons.pack(side="bottom", fill="x", pady=4)
-cancel_btn = tk.Button(lb_previewButtons, text='취소', command=cancel_edited, state='disabled')
+cancel_btn = tk.Button(lb_previewButtons, text='취소',font=basic_font, command=cancel_edited, state='disabled')
 cancel_btn.pack(side="right", padx=2)
-save_btn = tk.Button(lb_previewButtons, text='저장', command=save_edited, state='disabled')
+save_btn = tk.Button(lb_previewButtons, text='저장', font=basic_font, command=save_edited, state='disabled')
 save_btn.pack(side="right", padx=2)
 auto_format_btn = tk.Button(lb_previewButtons, text='가사 자동정렬', font=basic_font, command=on_click_auto_format)
 auto_format_btn.pack(side="right", padx=2)
@@ -621,10 +621,6 @@ frame3 - List
 # frame title
 list_label = tk.Label(frame3, text='List', font=bold_font, bg="#fffffe", fg="#ff8ba7")
 list_label.pack(fill="x", anchor="center")
-
-# clear button
-clear_btn = tk.Button(list_label, text="clear", command=clear_song_list)
-clear_btn.pack(side="right", padx=2)
 
 # 추가된 곡 건수 label
 lb_status = tk.Label(frame3)
@@ -659,6 +655,8 @@ update_btn = tk.Button(lb_buttons, text=' ↑ ', font=basic_font, command=list_u
 update_btn.pack(side="left", padx=2, pady=2)
 update_btn = tk.Button(lb_buttons, text=' ↓ ', font=basic_font, command=list_down)
 update_btn.pack(side="left", padx=2, pady=2)
+clear_btn = tk.Button(lb_buttons, text="초기화", command=clear_song_list)
+clear_btn.pack(side="right", padx=2)
 remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
 remove_btn.pack(side="right", padx=2, pady=2)
 

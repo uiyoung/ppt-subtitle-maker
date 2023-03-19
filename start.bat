@@ -1,1 +1,1 @@
-python ./subtitle_maker_gui.py
+python ./subtitle_maker.py

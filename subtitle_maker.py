@@ -463,7 +463,6 @@ def generate_ppt():
         messagebox.showwarning('generate PPT', '곡을 먼저 추가해주세요.')
         return
 
-    # path = filedialog.asksaveasfilename(initialdir="./ppt", title="Select file", filetypes=(("PPTX files", "*.pptx"), ("all files", "*.*")))
     path = filedialog.asksaveasfilename(title="Select file", filetypes=(("PPTX files", "*.pptx"), ("all files", "*.*")))
     path = path.replace('.pptx', '')
 
@@ -480,14 +479,15 @@ root = tk.Tk()
 root.title("PPT Subtitle Maker")
 root.geometry("990x490+100+100")
 
+root.configure(background="#fffffe")
 # fonts
 basic_font = font.Font(family="맑은 고딕", size=9)
 bold_font = font.Font(family="맑은 고딕", size=9, weight="bold")
 
 # frames
-frame1 = tk.Frame(root, relief="groove", bd=2, bg="#E5E9F0")
-frame2 = tk.Frame(root, relief="groove", bd=2)
-frame3 = tk.Frame(root, relief="groove", bd=2)
+frame1 = tk.Frame(root, relief="groove", bd=2, bg="#f9f9f9")
+frame2 = tk.Frame(root, relief="groove", bd=2, bg="#f9f9f9")
+frame3 = tk.Frame(root, relief="groove", bd=2, bg="#f9f9f9")
 frame1.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
 frame2.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
 frame3.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
@@ -496,11 +496,11 @@ frame3.pack(side="left", fill="y", padx=4, pady=2, anchor="n")
 frame1 - Search
 """
 
-lb_frame1_title = tk.Label(frame1, text='Search', font=bold_font, bg="white", fg="#ff8ba7")
+lb_frame1_title = tk.Label(frame1, text='Search', font=bold_font, bg="#fadde1", fg="#e63946")
 lb_frame1_title.pack(fill="x", anchor="center")
 
 # combobox
-lb_search = tk.Label(frame1, bg="#E5E9F0")
+lb_search = tk.Label(frame1, bg="#f9f9f9")
 lb_search.pack(fill="x")
 # values = ['전체', '제목', '가사']
 values = ['제목']
@@ -514,17 +514,23 @@ search_entry.bind("<Return>", search_songs_enter)
 search_entry.pack(side="left", fill="x", padx=4, expand=True)
 
 # search button
-search_btn = tk.Button(lb_search, text='검색', font=basic_font, fg="#2E3440", command=lambda: search_songs(search_entry.get()))
+search_btn = tk.Button(lb_search, text='검색', font=basic_font, bg='#fffffe', fg='#2E3440', command=lambda: search_songs(search_entry.get()))
 search_btn.pack(side="left", padx=2)
 
 # search result
-label = tk.Label(frame1, text='검색 결과 : ' + str(len(songs)), font=bold_font, bg="#E5E9F0")
+label = tk.Label(frame1, text='검색 결과 : ' + str(len(songs)), font=bold_font, bg="#f9f9f9")
 label.pack(side="top", pady=4, fill="x")
 
 # treeview - 검색 결과
-treeview_frame = tk.Frame(frame1, bg="#E5E9F0")
+treeview_frame = tk.Frame(frame1, bg="#f9f9f9")
 treeview_frame.pack(padx=4, pady=4)
-search_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14)
+
+style = ttk.Style()
+style.configure("mystyle.Treeview", font=basic_font)  # Modify the font of the body
+# style.configure("mystyle.Treeview.Heading", font=bold_font)  # Modify the font of the headings
+# style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+
+search_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14, style="mystyle.Treeview")
 search_tv.pack(side="left")
 
 # treeview["show"] = "headings"
@@ -542,75 +548,75 @@ search_tv.configure(yscrollcommand=scrollbar.set)
 
 
 # buttons
-lb_search2 = tk.Label(frame1, bg="#E5E9F0")
+lb_search2 = tk.Label(frame1, bg="#f9f9f9")
 lb_search2.pack(fill="x")
-add_btn = tk.Button(lb_search2, text='새 가사 등록', font=basic_font, command=open_register_window)
+add_btn = tk.Button(lb_search2, text='새 가사 등록', font=bold_font, command=open_register_window, bg="#fffffe", fg='#25a18e')
 add_btn.pack(side="right", padx=2)
-add_btn = tk.Button(lb_search2, text='가사 삭제', font=basic_font, command=delete_song)
+add_btn = tk.Button(lb_search2, text='가사 삭제', font=bold_font, command=delete_song, bg="#fffffe", fg="#e63946")
 add_btn.pack(side="right", padx=2)
-add_to_list_btn = tk.Button(frame1, text='목록에 추가', width=16, height=2, font=bold_font, bg='#fff', fg='#2E3440', command=add_to_list)
-add_to_list_btn.pack(side="bottom", fill="x", padx=8, pady=8)
+add_to_list_btn = tk.Button(frame1, text='목록에 추가', width=16, height=2, font=bold_font, bg='#fffffe', fg='#2E3440', command=add_to_list)
+add_to_list_btn.pack(side="bottom", fill="x", padx=4, pady=8)
 
 """
 frame 2 - Preview
 """
 
 # frame title
-lb_frame2_title = tk.Label(frame2, text='Preview', font=bold_font, bg="white", fg="#ff8ba7")
+lb_frame2_title = tk.Label(frame2, text='Preview', font=bold_font, bg="#fadde1", fg="#e63946")
 lb_frame2_title.pack(fill="x")
 
 # ID
 id_lbl_var = tk.StringVar(value='')
-id_lbl = tk.Label(frame2, textvariable=id_lbl_var)
+id_lbl = tk.Label(frame2, textvariable=id_lbl_var, bg="#f9f9f9", fg="#2E3440")
 id_lbl.pack(anchor="e", padx=4)
 
 # type
-lb_type = tk.Label(frame2)
+lb_type = tk.Label(frame2, bg="#f9f9f9", fg="#2E3440")
 lb_type.pack(fill="x")
-type_lbl = tk.Label(lb_type, text='구분', font=bold_font)
+type_lbl = tk.Label(lb_type, text='구분', font=bold_font, bg="#f9f9f9", fg="#2E3440")
 type_lbl.pack(side="left")
 type_combobox = ttk.Combobox(lb_type, values=song_types, width=10, state='readonly', font=basic_font)
 type_combobox.pack(side="left", padx=4)
 
 # title
-lb_title = tk.Label(frame2)
+lb_title = tk.Label(frame2, bg="#f9f9f9", fg="#2E3440")
 lb_title.pack(fill="x")
-title_lbl = tk.Label(lb_title, text='제목', font=bold_font)
+title_lbl = tk.Label(lb_title, text='제목', font=bold_font, bg="#f9f9f9", fg="#2E3440")
 title_lbl.pack(side="left")
 title_input = tk.Entry(lb_title, font=basic_font, width=20)
 title_input.pack()
 title_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # lyrics
-lb_lyrics = tk.Label(frame2)
+lb_lyrics = tk.Label(frame2, bg="#f9f9f9", fg="#2E3440")
 lb_lyrics.pack(fill="x")
-lyrics_lbl = tk.Label(lb_lyrics, text='가사', font=bold_font)
+lyrics_lbl = tk.Label(lb_lyrics, text='가사', font=bold_font, bg="#f9f9f9", fg="#2E3440")
 lyrics_lbl.pack(side="left", anchor="n")
 lyrics_text = ScrolledText(lb_lyrics, font=basic_font, height=20, width=34)
 lyrics_text.pack(side="left", padx=4, fill="both")
 
 # memo
-lb_memo = tk.Label(frame2)
+lb_memo = tk.Label(frame2, bg="#f9f9f9", fg="#2E3440")
 lb_memo.pack(fill="x")
-memo_lbl = tk.Label(lb_memo, text='메모', font=bold_font)
+memo_lbl = tk.Label(lb_memo, text='메모', font=bold_font, bg="#f9f9f9", fg="#2E3440")
 memo_lbl.pack(side="left")
 memo_input = tk.Entry(lb_memo, font=basic_font)
 memo_input.pack(side="left", padx=4, fill="x", expand=True)
 
 # save, cancel buttons
-lb_previewButtons = tk.Label(frame2)
+lb_previewButtons = tk.Label(frame2, bg="#f9f9f9", fg="#2E3440")
 lb_previewButtons.pack(side="bottom", fill="x", pady=4)
-cancel_btn = tk.Button(lb_previewButtons, text='취소',font=basic_font, command=cancel_edited, state='disabled')
+cancel_btn = tk.Button(lb_previewButtons, text='취소', bg='#fffffe', fg='#2E3440', font=basic_font, command=cancel_edited, state='disabled')
 cancel_btn.pack(side="right", padx=2)
-save_btn = tk.Button(lb_previewButtons, text='저장', font=basic_font, command=save_edited, state='disabled')
+save_btn = tk.Button(lb_previewButtons, text='저장', bg='#fffffe', fg='#2E3440', font=basic_font, command=save_edited, state='disabled')
 save_btn.pack(side="right", padx=2)
-auto_format_btn = tk.Button(lb_previewButtons, text='가사 자동정렬', font=basic_font, command=on_click_auto_format)
+auto_format_btn = tk.Button(lb_previewButtons, text='가사 자동정렬', bg='#fffffe', fg='#2E3440', font=basic_font, command=on_click_auto_format)
 auto_format_btn.pack(side="right", padx=2)
-update_btn = tk.Button(lb_previewButtons, text='수정', font=basic_font, command=update_song_btn)
+update_btn = tk.Button(lb_previewButtons, text='수정', bg='#fffffe', fg='#e63946', font=basic_font, command=update_song_btn)
 update_btn.pack(side="right", padx=2)
 
 # info
-info_lbl = tk.Label(frame2, text='', fg='#d7565d')
+info_lbl = tk.Label(frame2, text='', bg="#f9f9f9", fg="#BF616A")
 info_lbl.pack(side="bottom")
 
 
@@ -619,20 +625,20 @@ frame3 - List
 """
 
 # frame title
-list_label = tk.Label(frame3, text='List', font=bold_font, bg="#fffffe", fg="#ff8ba7")
+list_label = tk.Label(frame3, text='List', font=bold_font, bg="#fadde1", fg="#e63946")
 list_label.pack(fill="x", anchor="center")
 
 # 추가된 곡 건수 label
-lb_status = tk.Label(frame3)
+lb_status = tk.Label(frame3, bg="#f9f9f9")
 lb_status.pack(fill="x")
 label_var = tk.StringVar(value='추가된 곡 : 0건')
-lb_list_info = tk.Label(lb_status, font=bold_font, textvariable=label_var)
+lb_list_info = tk.Label(lb_status, font=bold_font, bg="#f9f9f9", textvariable=label_var)
 lb_list_info.pack(pady=4)
 
 # treeview - 추가된 곡 리스트
-treeview_frame = tk.Frame(frame3)
+treeview_frame = tk.Frame(frame3, bg="#f9f9f9")
 treeview_frame.pack(padx=4)
-list_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14)
+list_tv = ttk.Treeview(treeview_frame, columns=["id", "title"], displaycolumns=["id", "title"], height=14, style="mystyle.Treeview")
 list_tv.pack(side="left")
 
 # list_tv["show"] = "headings"
@@ -649,19 +655,19 @@ scrollbar.pack(side="right", fill="y")
 list_tv.configure(yscrollcommand=scrollbar.set)
 
 # buttons
-lb_buttons = tk.Label(frame3)
+lb_buttons = tk.Label(frame3, bg="#f9f9f9")
 lb_buttons.pack(fill="x", anchor="e")
-update_btn = tk.Button(lb_buttons, text=' ↑ ', font=basic_font, command=list_up)
+update_btn = tk.Button(lb_buttons, text=' ↑ ', bg='#fffffe', fg='#2E3440', font=bold_font, command=list_up)
 update_btn.pack(side="left", padx=2, pady=2)
-update_btn = tk.Button(lb_buttons, text=' ↓ ', font=basic_font, command=list_down)
+update_btn = tk.Button(lb_buttons, text=' ↓ ', bg='#fffffe', fg='#2E3440', font=bold_font, command=list_down)
 update_btn.pack(side="left", padx=2, pady=2)
-clear_btn = tk.Button(lb_buttons, text="초기화", command=clear_song_list)
+clear_btn = tk.Button(lb_buttons, text="초기화", bg='#fffffe', fg='#2E3440', font=bold_font, command=clear_song_list)
 clear_btn.pack(side="right", padx=2)
-remove_btn = tk.Button(lb_buttons, text='제거', font=basic_font, command=delete_song_from_list)
+remove_btn = tk.Button(lb_buttons, text='제거', bg='#fffffe', fg='#2E3440', font=bold_font, command=delete_song_from_list)
 remove_btn.pack(side="right", padx=2, pady=2)
 
-generate_btn = tk.Button(frame3, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#f00', command=generate_ppt)
-generate_btn.pack(side="bottom", fill="x", padx=16, pady=8)
+generate_btn = tk.Button(frame3, text='PPT 생성', width=16, height=2, font=bold_font, bg='#fff', fg='#e63946', command=generate_ppt)
+generate_btn.pack(side="bottom", fill="x", padx=4, pady=8)
 
 # set_treeview_items(songs)
 set_readonly(True)

@@ -193,6 +193,7 @@ def open_register_window():
     register_window = tk.Toplevel()
     register_window.title("New Lyrics")
     register_window.geometry("280x516+300+100")
+    register_window.resizable(width=False, height=False)
 
     # type
     lb_1 = tk.Label(register_window)
@@ -478,6 +479,7 @@ init_db()
 root = tk.Tk()
 root.title("PPT Subtitle Maker")
 root.geometry("990x490+100+100")
+root.resizable(width=False, height=False)
 
 root.configure(background="#fffffe")
 # fonts

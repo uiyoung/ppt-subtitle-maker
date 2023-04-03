@@ -1,8 +1,11 @@
 # PPT Subtitle Maker
-<image src="./resources/hymns.png" width=200>
 
+<image src="./resources/hymns.png" width=100>
+<br>
 가사를 DB로 관리하고 콘티를 만들어서 PPT 자막 파일로 만들어 주는 앱
-
+<br>
+<image src="./resources/main.png">
+<br>
 
 ## Features
 
@@ -27,6 +30,7 @@
 3. 원하는 곡을 모두 선택했으면 메인 윈도우의 `PPT 생성` 버튼을 눌러 PPT 파일을 생성한다.
 
 ### CLI mode
+
 txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 
 1. `/txt` 디렉토리에 `곡명.txt` 파일을 만들고 그 안에 만들고 싶은 자막의 가사를 작성한다.
@@ -48,4 +52,5 @@ txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 - [ ] local db -> cloud db with api
 
 ## Copyright Information
+
 - <a href="https://www.flaticon.com/free-icons/hymns" title="hymns icons">Hymns icons created by Flat Icons - Flaticon</a>

@@ -14,8 +14,7 @@
 
 ## Requirements
 
-1. install [python 3.9.12](https://www.python.org/downloads/release/python-3912/)
-   - 😮 error occurs on python over 3.10
+1. install [python](https://www.python.org/downloads/)
 2. install python-pptx library
    - `pip install python-pptx`
 
@@ -46,8 +45,8 @@ txt 가사파일을 두줄 씩 불러와서 PPT로 만들어주는 앱
 - [x] GUI mode
 - [x] merger
 - [x] 여러 곡 한번에 저장해서 콘티 만들기
-- [ ] 콘티 관리(DB 저장, 불러오기)
-- [ ] 종료시 콘티 저장, 다시 실행시 불러오기
+- [ ] setlist 관리(DB 저장, 불러오기)
+- [ ] 종료시 setlist 저장, 다시 실행시 불러오기
 - [ ] try catch 처리
 - [ ] local db -> cloud db with api
 
